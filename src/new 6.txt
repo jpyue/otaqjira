@@ -1,0 +1,100 @@
+ function boolean isCertifiedEFModel(String ef, String model, String ami, String make, String industry, org.hibernate.Session hSession) {
+	String queryString = "";
+	
+	System.out.println("function called ::: "+ef + " " + model + " " + ami+ " " + make);
+	
+	if(industry == "HEAVY_DUTY_HIGHWAY_DIESEL_ENGINE" || industry == "HEAVY_DUTY_HIGHWAY_GAS_ENGINE") { 	
+		queryString = " select ef.engine_family_nm,m.ENGINE_MODEL_NM, m.ENGINE_CODE from HDH_ENG_SUBMISSION s "
+						+ "join HDH_ENG_CERT_DATASET d "
+						+ "on d.HDH_ENG_SUBMISSION_ID = s.HDH_ENG_SUBMISSION_ID "
+						+ "join reference_code r on r.reference_code_id = s.status_cd and r.REF_CODE in ('CERT', 'VOID', 'SUSP', 'REVOKE') " 
+						+ "join HDH_ENG_MODEL m on m.HDH_ENG_CERT_DATASET_ID = d.HDH_ENG_CERT_DATASET_ID "
+						+ "join HDH_ENG_HEADER h on h.HDH_ENG_HEADER_ID = s.HDH_ENG_HEADER_ID "
+						+ "join ENGINE_FAMILY ef on ef.ENGINE_FAMILY_ID = h.ENGINE_FAMILY_ID ";
+						
+		queryString += "where ef.engine_family_nm = '"+ ef + "' ";
+		queryString += "and   m.ENGINE_MODEL_NM = '"+ model + "' ";
+		queryString += "and   m.ENGINE_CODE = '"+ ami + "'";
+	}
+	else if(industry == "HEAVY_DUTY_HIGHWAY_TRACTORS_AND_VOCATIONAL_VEHICLES") {
+		queryString = "select ef.engine_family_nm, n.VEHICLE_TRADE_NM from HDV_SUBMISSION s "
+						+ "join HDV_CERT_DATASET d on d.HDV_SUBMISSION_ID = s.HDV_SUBMISSION_ID join reference_code r "
+						+ "on r.reference_code_id = s.status_cd and r.REF_CODE in ('CERT', 'VOID', 'SUSP', 'REVOKE') "
+						+ "join HDV_VEHICLE_TRADE_NAME n on n.HDV_CERT_DATASET_ID = d.HDV_CERT_DATASET_ID "
+						+ " join HDV_HEADER h on h.HDV_HEADER_ID = s.HDV_HEADER_ID "
+						+ " join ENGINE_FAMILY ef on ef.ENGINE_FAMILY_ID = h.ENGINE_FAMILY_ID ";
+
+		queryString += "where ef.engine_family_nm = '"+ ef + "' ";
+		queryString += "and   n.VEHICLE_TRADE_NM = '"+ model + "' "; 
+ 	}
+	else if(industry == "NONROAD_COMPRESSION_IGNITED") {
+		queryString = "select ef.engine_family_nm, m.ENG_MODEL_NM,m.ENG_CD from HDNRCI_SUBMISSION s "
+						+ "join HDNRCI_CERT_DATASET d on d.HDNRCI_SUBMISSION_ID = s.HDNRCI_SUBMISSION_ID join reference_code r "
+						+ "on r.reference_code_id = s.status_cd and r.REF_CODE in ('CERT', 'VOID', 'SUSP', 'REVOKE') "
+						+ "join HDNRCI_ENGINE_MODEL m on m.HDNRCI_CERT_DATASET_ID = d.HDNRCI_CERT_DATASET_ID "
+						+ "join HDNRCI_HEADER h on h.HDNRCI_HEADER_ID = s.HDNRCI_HEADER_ID "
+						+ " join ENGINE_FAMILY ef on ef.ENGINE_FAMILY_ID = h.ENGINE_FAMILY_ID ";
+
+		queryString += "where ef.engine_family_nm = '"+ ef + "' ";
+		queryString += "and   m.ENG_MODEL_NM = '"+ model + "' "; 
+		queryString += "and   m.ENG_CD = '"+ ami + "'";
+ 	}
+ 
+	else if(industry == "MARINE_COMPRESSION_IGNITED") {
+		queryString = "select ef.engine_family_nm,m.ENGINE_CONFIG_NM, r.ref_code from MCI_SUBMISSION s  "
+						+ "join MCI_CERT_DATASET d on d.MCI_SUBMISSION_ID = s.MCI_SUBMISSION_ID join reference_code r "
+						+ "on r.reference_code_id = s.status_cd and r.REF_CODE in ('CERT', 'VOID', 'SUSP', 'REVOKE') "
+						+ "join MCI_ENGINE_CONFIG m on m.MCI_CERT_DATASET_ID = d.MCI_CERT_DATASET_ID "
+						+ "join MCI_HEADER h on h.MCI_HEADER_ID = s.MCI_HEADER_ID "
+						+ "join ENGINE_FAMILY ef on ef.ENGINE_FAMILY_ID = h.ENGINE_FAMILY_ID ";
+
+		queryString += "where ef.engine_family_nm = '"+ ef + "' ";
+		queryString += "and   m.ENGINE_CONFIG_NM = '"+ model + "' "; 
+ 	}
+	else if(industry == "LOCOMOTIVE") {
+		queryString = "select ef.engine_family_nm,m.eng_model, m.loc_model from LOC_SUBMISSION s "
+						+ "join LOC_CERT_DATASET d on d.LOC_SUBMISSION_ID = s.LOC_SUBMISSION_ID join reference_code r "
+						+ "on r.reference_code_id = s.status_cd and r.REF_CODE in ('CERT', 'VOID', 'SUSP', 'REVOKE') "
+						+ "join LOC_MODEL m on m.LOC_CERT_DATASET_ID = d.LOC_CERT_DATASET_ID "
+						+ "join LOC_FAMILY_HEADER h on h.LOC_FAMILY_HEADER_ID = s.LOC_FAMILY_HEADER_ID "
+						+ "join ENGINE_FAMILY ef on ef.ENGINE_FAMILY_ID = h.ENGINE_FAMILY_ID ";
+
+		queryString += "where ef.engine_family_nm = '"+ ef + "' ";
+		queryString += "and   m.eng_model = '"+ model + "' "; 
+		queryString += "and   m.loc_model = '"+ ami + "' "; 
+ 	}
+	else if(industry == "LARGE_NONROAD_SPARK_IGNITED" || industry == "SMALL_NONROAD_SPARK_IGNITED" ||
+	                    industry ==  "MARINE_SPARK_IGNITED") {
+		queryString = "select ef.engine_family_nm,m.model_name, m.eng_code from nrsi_cert_info d "
+						+ "join reference_code r on r.reference_code_id = d.certificate_status_cd "
+						+ "and r.REF_CODE in ('CERT', 'VOID', 'SUSP', 'REVOKE') "
+						+ "join nrsi_engine_family_info i on i.NRSI_CERT_INFO_ID = d.NRSI_CERT_INFO_ID "
+						+ "join nrsi_engine_configuration m on m.nrsi_eng_family_info_id = i.nrsi_eng_family_info_id "
+						+ "join nrsi_engine_family_header h on h.nrsi_eng_family_header_id = i.nrsi_eng_family_header_id  "
+						+ "join ENGINE_FAMILY ef on ef.ENGINE_FAMILY_ID = h.ENGINE_FAMILY_ID ";
+
+		queryString += "where ef.engine_family_nm = '"+ ef + "' ";
+		queryString += "and   m.model_name = '"+ model + "' "; 
+		queryString += "and   m.eng_code = '"+ ami + "' "; 
+ 	}
+	else if(industry == "ALL_TERRAIN_VEHICLE" || industry == "OFF_HIGHWAY_MOTORCYCLE" ||
+	                    industry ==  "HIGHWAY_MOTORCYCLE") {
+		queryString = "select * from mccsi1_summary_sheet d "
+						+ "join reference_code r on r.reference_code_id = d.status_cd "
+						+ "and r.REF_CODE in ('CERT', 'VOID', 'SUSP', 'REVOKE') "
+						+ "join mccsi7_model m on m.mccsi1_summary_sheet_id = d.mccsi1_summary_sheet_id "
+						+ "join ENGINE_FAMILY ef on ef.ENGINE_FAMILY_ID = d.ENGINE_FAMILY_ID ";
+
+		queryString += "where ef.engine_family_nm = '"+ ef + "' ";
+		queryString += "and   m.cev_assembly_mfr_nm = '"+ make + "' "; 
+		queryString += "and   m.cev_mfr_model_nm = '"+ model + "' "; 
+		queryString += "and   m.cev_engine_cd = '"+ ami + "' "; 
+ 	}
+
+	List count = (ArrayList) hSession.createSQLQuery( queryString).list();
+
+	if(count.size() == 0)
+		return false;			
+
+	return true;
+}
